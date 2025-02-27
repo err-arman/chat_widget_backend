@@ -126,14 +126,18 @@ export class ChatGateway {
       send_to: string;
       message: string;
       send_from: string;
+      first_message: boolean;
     },
   ) {
     if (payload.send_from) {
+      console.log('send from', payload);
+
       this.messageRepository.save({ ...payload, text: payload.message });
 
       this.server.to(payload.send_to).emit(payload.send_to, {
         from: payload?.send_from,
         message: payload.message,
+        first_messsage: payload.first_message
       });
     }
   }

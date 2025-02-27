@@ -28,7 +28,7 @@
   const header = document.createElement('div');
   header.style.width = '100%';
   header.style.height = '130px'; // Adjust height for better vertical alignment
-  header.style.backgroundColor = '#8dbf43';
+  header.style.backgroundColor = '#7cad34';
   header.style.borderBottom = '1px solid #ddd';
   header.style.display = 'flex';
   header.style.flexDirection = 'column'; // Stack logo and text vertically
@@ -72,7 +72,7 @@
 
   // Create an iframe for your chat page
   const chatIframe = document.createElement('iframe');
-  chatIframe.src = `${FRONTEND_URL}/chat`;
+  chatIframe.src = `${FRONTEND_URL}/chat `;
   chatIframe.style.width = '100%';
   chatIframe.style.height = '100%';
   chatIframe.style.border = 'none';

@@ -69,7 +69,7 @@ export class MessagesService {
         .getRawMany();
       
 
-      console.log('messages', messages);
+      // console.log('messages', messages);
 
       return {
         success: true,

@@ -9,6 +9,7 @@ import { MessagesModule } from './messages/messages.module';
 import { ChatModule } from './chat/chat.module';
 import { MessagesService } from './messages/messages.service';
 import { ClientModule } from './client/client.module';
+import { AdminsModule } from './admins/admins.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ClientModule } from './client/client.module';
     MessagesModule,
     ChatModule,
     ClientModule,
+    AdminsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
