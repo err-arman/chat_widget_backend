@@ -26,6 +26,6 @@ export class Client {
       @Column()
       socket_id: string
 
-      @OneToMany(() => Message, (message) => message.sendFrom)
-      message: Message[];
+      // @OneToMany(() => Message, (message) => message.sendFrom)
+      // message: Message[];
 }

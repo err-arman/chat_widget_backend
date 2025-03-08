@@ -12,7 +12,7 @@ export class CreateMessageDto {
 
   @IsNotEmpty()
   @IsString()
-  sendFrom: string;
+  socket_id: string;
 
   @IsNotEmpty()
   @IsString()

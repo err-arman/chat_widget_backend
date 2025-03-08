@@ -1,9 +1,12 @@
+import { Message } from 'src/messages/entities/message.entity';
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   Column,
   UpdateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -24,11 +27,14 @@ export class Admin {
   @Column()
   user_id: string;
 
-  @Column()
-  user_email: string;
+  @OneToMany(() => Message, (message) => message.admin)
+  messages: Message[];
 
   @Column()
   name: string;
+
+  @Column({ nullable: true })
+  user_email: string;
 
   @Column({ type: 'varchar', nullable: true })
   authProvider?: string | null;

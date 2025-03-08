@@ -35,24 +35,58 @@ export class ChatGateway {
 
   @SubscribeMessage('message')
   handleMessage(client: any, payload: any): string {
-    console.log('paylaod', payload);
+    // console.log('paylaod', payload);
     return 'Hello world!';
   }
 
+  // handleConnection(client: Socket) {
+  //   // console.log('handle  connet', client.id);
+  //   const visitorId = uuidv4();
+  //   client.data.visitorId = visitorId;
+
+  //   client.on('sendSocketId', (data) => {
+  //     if (data.role === 'user') {
+  //       // console.log('Received socket_id from frontend:', data);
+  //       this.clientRepository.save({ socket_id: data.client_id });
+  //     }
+  //   });
+  // }
+
+
   handleConnection(client: Socket) {
-    // Assign a unique visitor ID for anonymous users
-    console.log('handle  connet', client.id);
     const visitorId = uuidv4();
     client.data.visitorId = visitorId;
-
-    client.on('sendSocketId', (data) => {
-      console.log('Received socket_id from frontend:', data);
-      if (data.role === 'user') {
-        this.clientRepository.save({ socket_id: data.socketId });
-      }
-    });
+    
+    // Check if client already has a client_id in query params
+    const existingClientId = client.handshake.query.client_id as string;
+    if (existingClientId) {
+      // Use the existing ID from localStorage
+      client.data.clientId = existingClientId;
+      // Update the database with this existing ID
+      this.clientRepository.findOne({ where: { socket_id: existingClientId } })
+        .then(dbClient => {
+          if (!dbClient) {
+            // If not found, create new entry
+            this.clientRepository.save({ socket_id: existingClientId });
+          }
+        });
+    }
   }
 
+
+
+  // handleDisconnect(client: Socket) {
+  //   console.log('handle disconnet');
+  //   // Clean up any support sessions
+  //   for (const [sessionKey, session] of this.supportSessions.entries()) {
+  //     if (
+  //       session.visitorId === client.data.visitorId ||
+  //       session.supportId === client.id
+  //     ) {
+  //       this.supportSessions.delete(sessionKey);
+  //     }
+  //   }
+  // }
   handleDisconnect(client: Socket) {
     console.log('handle disconnet');
     // Clean up any support sessions
@@ -66,6 +100,32 @@ export class ChatGateway {
     }
   }
 
+
+  @SubscribeMessage('sendSocketId')
+  async handleClientId(client: Socket, data: { client_id: string, role: string }) {
+    if (data.role === 'user') {
+      // Store the client ID in the client's data for future reference
+      client.data.clientId = data.client_id;
+      
+      // Save to database
+      const existingClient = await this.clientRepository.findOne({ 
+        where: { socket_id: data.client_id } 
+      });
+      
+      if (!existingClient) {
+        await this.clientRepository.save({ socket_id: data.client_id });
+      }
+      
+      // Associate this socket with the client_id for messaging
+      this.clients.set(data.client_id, client.id);
+      
+      // Join a room with the client_id as the room name for direct messaging
+      client.join(data.client_id);
+    }
+  }
+
+
+
   @SubscribeMessage('register')
   registerClient(client: Socket, payload: { userId: string }) {
     this.clients.set(payload.userId, client.id);
@@ -77,7 +137,7 @@ export class ChatGateway {
     payload: {
       send_to: string;
       message: string;
-      send_from: string;
+      socket_id: string;
       visitorId?: string;
     },
   ) {
@@ -125,27 +185,34 @@ export class ChatGateway {
     payload: {
       send_to: string;
       message: string;
-      send_from: string;
+      send_to_socket_id: string;
+      socket_id: string;
       first_message: boolean;
+      client_id: string;
+      user_id?: string;
     },
   ) {
-    if (payload.send_from) {
-      console.log('send from', payload);
+    if (payload.socket_id) {
+      console.log('payload  ', payload);
 
-      this.messageRepository.save({ ...payload, text: payload.message });
+      this.messageRepository.save({
+        // admin: { admin: payload.user_id }, 
+        ...payload,
+        text: payload.message,
+      });
 
-      this.server.to(payload.send_to).emit(payload.send_to, {
-        from: payload?.send_from,
+      this.server.to(payload.send_to_socket_id).emit(payload.send_to_socket_id, {
+        socket_id: payload?.socket_id,
         message: payload.message,
-        first_messsage: payload.first_message
+        first_messsage: payload.first_message,
+        client_id: payload.client_id,
       });
     }
   }
 
   @SubscribeMessage('join')
   async joinRoom(client: Socket, room: string) {
-    console.log('room id', room);
-
+    // console.log('Client  joined room:', room);
     client.join(room);
   }
 }

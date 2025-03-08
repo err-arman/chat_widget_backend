@@ -1,4 +1,4 @@
-import { Client } from 'src/client/entities/client.entity';
+import { Admin } from 'src/admins/entities/admin.entity';
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -7,6 +7,7 @@ import {
   Entity,
   OneToMany,
   ManyToOne,
+
 } from 'typeorm';
 
 @Entity()
@@ -28,14 +29,21 @@ export class Message {
   text: string;
 
   @Column()
-  send_from: string;
+  socket_id: string;
 
-  @Column()
+  @Column({nullable: true})
   send_to: string;
 
+  @Column({ nullable: true })
+  send_to_socket_id: string;
 
-  @ManyToOne(() => Client, (user) => user.message)
-  sendFrom: Client;
+  @Column({ nullable: true })
+  client_id: string;
 
+  // @Column({ nullable: true })
+  // user_id: string;
+
+  @ManyToOne(() => Admin, (admin) => admin.messages, { nullable: true, onDelete: 'CASCADE' })
+  admin: Admin;
 
 }

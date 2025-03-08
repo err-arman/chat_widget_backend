@@ -17,7 +17,7 @@ export class MessagesService {
       // Create a new message instance
       const newMessage = this.messageRepository.create({
         text: createMessageDto.message,
-        send_from: createMessageDto.sendFrom,
+        socket_id: createMessageDto.socket_id,
         send_to: createMessageDto.sendTo,
       });
 
@@ -46,45 +46,52 @@ export class MessagesService {
 
   async findAll(userId: string, clientId: string) {
     try {
-      if (!userId || !clientId?.length)
+      if (!userId || !clientId?.length) {
         return {
           success: false,
-          message: `User id or client id missing`,
+          message: 'User id or client id missing',
         };
+      }
+  
+      console.log(`userId: ${userId} clientId: ${clientId}`);
+      const messages = await this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoinAndSelect('message.admin', 'admin')
+      .select([
+        'message.id as id',
+        'message.created_at as created_at',
+        'message.updated_at as updated_at',
+        'message.text as text',
+        'message.send_to as send_to',
+        'message.socket_id as socket_id',
+        'message.client_id as client_id',
+        'admin.id as admin_id'
+      ])
+      .where(
+        '(message.client_id = :clientId AND message.send_to = :userId) OR ' +
+        '(message.socket_id = :clientId AND message.send_to = :userId) OR ' +
+        '(message.socket_id = :userId AND message.client_id = :clientId) OR ' +
+        '(message.send_to = :clientId AND message.client_id = :userId)',
+        { userId, clientId }
+      )
+      .orderBy('message.created_at', 'ASC')
+      .getRawMany();
 
-        const messages = await this.messageRepository
-        .createQueryBuilder('message')
-        .select([
-          'message.id as id',
-          'message.created_at as created_at',
-          'message.updated_at as updated_at',
-          'message.text as text',
-          'message.send_to as send_to',
-          'message.send_from as send_from',
-        ])
-        .where(
-          '(message.send_from = :userId AND message.send_to = :clientId) OR (message.send_from = :clientId AND message.send_to = :userId)',
-          { userId, clientId }
-        )
-        .getRawMany();
-      
-
-      // console.log('messages', messages);
-
+      console.log('message', messages)
+  
       return {
         success: true,
         data: messages,
       };
     } catch (error) {
       console.error('Error finding message:', error);
-
+  
       throw new HttpException(
         'Failed to find message',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-
   findOne(id: number) {
     return `This action returns a #${id} message`;
   }
