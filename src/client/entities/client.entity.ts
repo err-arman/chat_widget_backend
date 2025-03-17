@@ -6,26 +6,26 @@ import {
     Column,
     Entity,
     OneToMany,
-  } from 'typeorm';
+} from 'typeorm';
 
 @Entity()
 export class Client {
-      @PrimaryGeneratedColumn()
-      id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
     
-      @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-      created_at: Date;
+    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    created_at: Date;
     
-      @UpdateDateColumn({
+    @UpdateDateColumn({
         type: 'timestamp',
         default: () => 'CURRENT_TIMESTAMP',
         onUpdate: 'CURRENT_TIMESTAMP',
-      })
-      updated_at: Date;
+    })
+    updated_at: Date;
     
-      @Column()
-      socket_id: string
+    @Column()
+    socket_id: string;
 
-      // @OneToMany(() => Message, (message) => message.sendFrom)
-      // message: Message[];
+    @OneToMany(() => Message, (message) => message.client)
+    messages: Message[];
 }
