@@ -53,7 +53,7 @@ export class MessagesService {
         };
       }
   
-      console.log(`userId: ${userId} clientId: ${clientId}`);
+      // console.log(`userId: ${userId} clientId: ${clientId}`);
       const messages = await this.messageRepository
       .createQueryBuilder('message')
       .leftJoinAndSelect('message.admin', 'admin')
@@ -77,7 +77,7 @@ export class MessagesService {
       .orderBy('message.created_at', 'ASC')
       .getRawMany();
 
-      console.log('message', messages)
+      // console.log('message', messages)
   
       return {
         success: true,
