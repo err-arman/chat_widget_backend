@@ -10,7 +10,7 @@ import { Message } from 'src/messages/entities/message.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-@WebSocketGateway(8080, {
+@WebSocketGateway(Number(process.env.SOCKET_PORT), {
   cors: {
     origin: '*',
     credentials: true,
