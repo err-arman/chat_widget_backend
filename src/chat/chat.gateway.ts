@@ -10,7 +10,9 @@ import { Message } from 'src/messages/entities/message.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-@WebSocketGateway(8080, {
+// const socketPort = process.env.SOCKET_PORT;
+
+@WebSocketGateway(1010, {
   cors: {
     origin: '*',
     credentials: true,
@@ -53,6 +55,7 @@ export class ChatGateway {
   // }
 
   handleConnection(client: Socket) {
+
     const visitorId = uuidv4();
     client.data.visitorId = visitorId;
 
@@ -86,7 +89,7 @@ export class ChatGateway {
   //   }
   // }
   handleDisconnect(client: Socket) {
-    console.log('handle disconnet');
+    console.log('handle disconnet x');
     // Clean up any support sessions
     for (const [sessionKey, session] of this.supportSessions.entries()) {
       if (
@@ -115,7 +118,7 @@ export class ChatGateway {
       if (!existingClient) {
         const newClient = { socket_id: data.client_id };
         await this.clientRepository.save(newClient);
-        console.log('new-client', newClient)
+        console.log('new-client', newClient);
         this.server.emit(`new-client`, newClient);
       }
 
