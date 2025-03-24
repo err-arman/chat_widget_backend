@@ -10,7 +10,6 @@ import { Message } from 'src/messages/entities/message.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-// const socketPort = process.env.SOCKET_PORT;
 
 @WebSocketGateway(1010, {
   cors: {

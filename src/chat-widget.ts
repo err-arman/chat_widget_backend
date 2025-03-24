@@ -1,6 +1,10 @@
 (function () {
-  const FRONTEND_URL = `http://localhost:3001`;
-  const BACKEND_URL = `http://localhost:3000`;
+  // const FRONTEND_URL = `http://localhost:3001`;
+  // const BACKEND_URL = `http://localhost:3000`;
+
+  const FRONTEND_URL = `https://chat-widget.quarkshub.com`;
+  const BACKEND_URL = `https://chat-widget-api.quarkshub.com`;
+
 
   // Add Font Awesome CSS
   const fontAwesome = document.createElement('link');
