@@ -58,6 +58,7 @@ export class ChatGateway {
     const visitorId = uuidv4();
     client.data.visitorId = visitorId;
 
+
     // Check if client already has a client_id in query params
     const existingClientId = client.handshake.query.client_id as string;
     if (existingClientId) {
@@ -135,52 +136,52 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('supportMessage')
-  handleSupportMessage(
-    client: Socket,
-    payload: {
-      send_to: string;
-      message: string;
-      socket_id: string;
-      visitorId?: string;
-    },
-  ) {
-    // If it's a message from the support agent
-    if (payload.send_to === 'visitor') {
-      // Find the session for this visitor
-      const session = Array.from(this.supportSessions.values()).find(
-        (s) => s.supportId === client.id,
-      );
+  // handleSupportMessage(
+  //   client: Socket,
+  //   payload: {
+  //     send_to: string;
+  //     message: string;
+  //     socket_id: string;
+  //     visitorId?: string;
+  //   },
+  // ) {
+  //   // If it's a message from the support agent
+  //   if (payload.send_to === 'visitor') {
+  //     // Find the session for this visitor
+  //     const session = Array.from(this.supportSessions.values()).find(
+  //       (s) => s.supportId === client.id,
+  //     );
 
-      if (session) {
-        // Send message to visitor
-        this.server.to(session.visitorId).emit('supportMessage', {
-          from: 'support',
-          message: payload.message,
-        });
-      }
-      return;
-    }
+  //     if (session) {
+  //       // Send message to visitor
+  //       this.server.to(session.visitorId).emit('supportMessage', {
+  //         from: 'support',
+  //         message: payload.message,
+  //       });
+  //     }
+  //     return;
+  //   }
 
-    // If it's a message from a visitor
-    const supportSocketId = this.clients.get('10'); // Hardcoded support user ID
+  //   // If it's a message from a visitor
+  //   const supportSocketId = this.clients.get('10'); // Hardcoded support user ID
 
-    if (supportSocketId) {
-      // Create or find an existing support session
-      const sessionKey = client.data.visitorId;
-      if (!this.supportSessions.has(sessionKey)) {
-        this.supportSessions.set(sessionKey, {
-          supportId: supportSocketId,
-          visitorId: client.data.visitorId,
-        });
-      }
+  //   if (supportSocketId) {
+  //     // Create or find an existing support session
+  //     const sessionKey = client.data.visitorId;
+  //     if (!this.supportSessions.has(sessionKey)) {
+  //       this.supportSessions.set(sessionKey, {
+  //         supportId: supportSocketId,
+  //         visitorId: client.data.visitorId,
+  //       });
+  //     }
 
-      // Send message to support agent
-      this.server.to(supportSocketId).emit('supportMessage', {
-        from: client.data.visitorId,
-        message: payload.message,
-      });
-    }
-  }
+  //     // Send message to support agent
+  //     this.server.to(supportSocketId).emit('supportMessage', {
+  //       from: client.data.visitorId,
+  //       message: payload.message,
+  //     });
+  //   }
+  // }
 
   @SubscribeMessage('privetMessage')
   async sendPrivateMessage(
