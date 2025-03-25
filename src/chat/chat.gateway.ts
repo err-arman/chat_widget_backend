@@ -10,8 +10,17 @@ import { Message } from 'src/messages/entities/message.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
+interface MessagePayload {
+  send_to: string;
+  message: string;
+  send_to_socket_id: string;
+  socket_id: string;
+  first_message?: boolean; // Optional property
+  client_id: string;
+  user_id?: string; // Optional property
+}
 
-@WebSocketGateway(1010, {
+@WebSocketGateway({
   cors: {
     origin: '*',
     credentials: true,
@@ -40,24 +49,9 @@ export class ChatGateway {
     return 'Hello world!';
   }
 
-  // handleConnection(client: Socket) {
-  //   // console.log('handle  connet', client.id);
-  //   const visitorId = uuidv4();
-  //   client.data.visitorId = visitorId;
-
-  //   client.on('sendSocketId', (data) => {
-  //     if (data.role === 'user') {
-  //       // console.log('Received socket_id from frontend:', data);
-  //       this.clientRepository.save({ socket_id: data.client_id });
-  //     }
-  //   });
-  // }
-
   handleConnection(client: Socket) {
-
     const visitorId = uuidv4();
     client.data.visitorId = visitorId;
-
 
     // Check if client already has a client_id in query params
     const existingClientId = client.handshake.query.client_id as string;
@@ -76,20 +70,8 @@ export class ChatGateway {
     }
   }
 
-  // handleDisconnect(client: Socket) {
-  //   console.log('handle disconnet');
-  //   // Clean up any support sessions
-  //   for (const [sessionKey, session] of this.supportSessions.entries()) {
-  //     if (
-  //       session.visitorId === client.data.visitorId ||
-  //       session.supportId === client.id
-  //     ) {
-  //       this.supportSessions.delete(sessionKey);
-  //     }
-  //   }
-  // }
   handleDisconnect(client: Socket) {
-    console.log('handle disconnet x');
+    console.log('handle disconnet');
     // Clean up any support sessions
     for (const [sessionKey, session] of this.supportSessions.entries()) {
       if (
@@ -135,70 +117,10 @@ export class ChatGateway {
     this.clients.set(payload.userId, client.id);
   }
 
-  @SubscribeMessage('supportMessage')
-  // handleSupportMessage(
-  //   client: Socket,
-  //   payload: {
-  //     send_to: string;
-  //     message: string;
-  //     socket_id: string;
-  //     visitorId?: string;
-  //   },
-  // ) {
-  //   // If it's a message from the support agent
-  //   if (payload.send_to === 'visitor') {
-  //     // Find the session for this visitor
-  //     const session = Array.from(this.supportSessions.values()).find(
-  //       (s) => s.supportId === client.id,
-  //     );
-
-  //     if (session) {
-  //       // Send message to visitor
-  //       this.server.to(session.visitorId).emit('supportMessage', {
-  //         from: 'support',
-  //         message: payload.message,
-  //       });
-  //     }
-  //     return;
-  //   }
-
-  //   // If it's a message from a visitor
-  //   const supportSocketId = this.clients.get('10'); // Hardcoded support user ID
-
-  //   if (supportSocketId) {
-  //     // Create or find an existing support session
-  //     const sessionKey = client.data.visitorId;
-  //     if (!this.supportSessions.has(sessionKey)) {
-  //       this.supportSessions.set(sessionKey, {
-  //         supportId: supportSocketId,
-  //         visitorId: client.data.visitorId,
-  //       });
-  //     }
-
-  //     // Send message to support agent
-  //     this.server.to(supportSocketId).emit('supportMessage', {
-  //       from: client.data.visitorId,
-  //       message: payload.message,
-  //     });
-  //   }
-  // }
-
-  @SubscribeMessage('privetMessage')
-  async sendPrivateMessage(
-    client: Socket,
-    payload: {
-      send_to: string;
-      message: string;
-      send_to_socket_id: string;
-      socket_id: string;
-      first_message: boolean;
-      client_id: string;
-      user_id?: string;
-    },
-  ) {
+  @SubscribeMessage('message')
+  handleNewMessage(client: Socket, payload: MessagePayload): void {
+    console.log('payload  ', payload);
     if (payload.socket_id) {
-      console.log('payload  ', payload);
-
       this.messageRepository.save({
         // admin: { admin: payload.user_id },
         ...payload,
@@ -206,8 +128,8 @@ export class ChatGateway {
       });
 
       this.server
-        .to(payload.send_to_socket_id)
-        .emit(payload.send_to_socket_id, {
+        .to(payload.send_to)
+        .emit(payload.send_to, {
           socket_id: payload?.socket_id,
           message: payload.message,
           first_messsage: payload.first_message,
@@ -218,7 +140,6 @@ export class ChatGateway {
 
   @SubscribeMessage('join')
   async joinRoom(client: Socket, room: string) {
-    // console.log('Client  joined room:', room);
     client.join(room);
   }
 }
